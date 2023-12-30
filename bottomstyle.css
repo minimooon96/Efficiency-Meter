@@ -1,0 +1,11 @@
+.container {
+    display: auto;
+    margin-left:40vh;
+    margin-right:2vh;
+    height: 70%;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px 1px;
+    align-items: center;
+    padding: 10px;
+    backdrop-filter: blur(7.5px);
+}

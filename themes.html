@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Themes</title>
+    <link rel="stylesheet" href="themes/default.css" id="theme-style">
+    <link rel="stylesheet" href="style-db.css">
+    <script src="theme-switcher.js"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <br><br>
+        <div class="sidebar-menu">
+            <br><br>
+            <ul>
+                <li>
+                    <br>
+                    <a>
+                        <span>Select Theme</span>
+                        <br><br><br>
+                    </a>
+                    <select id="theme" onchange="changeTheme(this.value)">
+                        <option value="default">Default</option>
+                        <option value="light">Light Mode</option>
+                        <option value="night">Night Mode</option>
+                        <option value="reading">Reading Mode</option>
+                        <option value="pleasant">Pleasant Mode</option>
+                    </select>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

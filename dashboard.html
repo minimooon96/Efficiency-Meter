@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="icon" type="image" href="dbicon.jpg">
+</head>
+
+<body>
+    <div id="header" style="height: 20%; width: 100%; border: none;">
+
+        <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style-db.css">
+    <link rel="stylesheet" href="logoutbtn.css">
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script src="theme-switcher.js"></script>
+    <script defer src="dashboard.js"></script>
+</head>
+
+<body>
+    <header>
+        <span id="name"><span class="las la-business-time"></span> EFFICIENCY METER</span>
+        <div id="user-info">
+            <div id="logout">
+                <a href="index.html" onclick="handleLogout()" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </header>
+    <br>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQm6V28oglDEwwXKxD4nj81fKEQ20jclk",
+            authDomain: "efficiency-meter.firebaseapp.com",
+            projectId: "efficiency-meter",
+            storageBucket: "efficiency-meter.appspot.com",
+            messagingSenderId: "127480064298",
+            appId: "1:127480064298:web:175795ab84af55cc3dd653"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        firebase.auth().onAuthStateChanged(function (user) {
+            if (user) {
+                document.getElementById("profile-pic").src = user.photoURL;
+                document.getElementById("user-name").innerText = user.displayName;
+            } else {
+                window.location.replace("index.html");
+            }
+        });
+
+        function handleLogout() {
+            firebase.auth().signOut().then(function () {
+                window.location.replace("index.html");
+            }).catch(function (error) {
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+
+</html>
+
+
+    </div>
+    <div id="frames" style="height: 80%; width: 100%;">
+        <div id="left" style="bottom: 15%;">
+            <html lang="en">
+
+            <head>
+                <meta charset="UTF-8">
+                <link rel="stylesheet" href="style-db.css">
+                <link rel="stylesheet"
+                    href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+                <link rel="stylesheet"
+                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+                <link rel="stylesheet" href="themes/default.css" id="theme-style">
+            </head>
+
+            <body>
+                <div class="sidebar">
+                    <br>
+                    <div class="sidebar-menu">
+                        <br><br>
+                        <span style="font-family: 'Segoe UI'; font-weight: 500;">
+                            <ul>
+                                <li>
+                                    <a href="advtimer.html" target="_blank">
+                                        <span class="las la-mail-bulk"></span>
+                                        <p></p>
+                                        <span>ADVANCED TIMER</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="timesense.html" class="active">
+                                        <span class="las la-stopwatch"></span>
+                                        <p></p>
+                                        <span>COUNTDOWN TIMER</span>
+                                    </a>
+                                </li>
+                        </span>
+                        <li>
+                            <br>
+                            <a>
+                                <span>Select Theme</span>
+                                <br><br><br>
+                            </a>
+
+                            <select id="theme" onchange="changeTheme(this.value)">
+                                <option value="default">Default</option>
+								<option value="light">Light</option>
+                                <option value="night">Dark</option>
+                                <option value="pleasant">Iris Ease</option>
+                            </select>
+                        </li>
+                        </ul>
+                    </div>
+                </div>
+                <script src="theme-switcher.js"></script>
+            </body>
+
+            </html>
+        </div>
+        <div id="footer" style="flex: 85%;">
+            <!DOCTYPE html>
+            <html lang="en">
+
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" href="bottomstyle.css">
+                <script src="theme-switcher.js"></script>
+                <title>Time Tracking Tool</title>
+            </head>
+
+            <body>
+                <div class="container">
+                    <big>
+                        <h1>Easy To Monitor Your Task</h1>
+                        <p>
+                            Improve your efficiency with our straightforward <strong>Time Tracking Tool</strong> created
+                            to help you manage your time effectively. Stay organized, meet deadlines, and enhance
+                            your workflow with our easy-to-use tool, ensuring smooth time management.
+                        </p>
+                    
+                        <h2>Key Features:</h2>
+                        <dl>
+                            <li>Straightforward time tracking for tasks and projects.</li>
+                            <li>Create uncomplicated reports for a brief overview.</li>
+                        </dl>                    
+                        <h2>How It Works:</h2>
+                        <dl>
+                            <li><strong>Track Time:</strong> Use the user-friendly interface to log your work hours.</li>
+                            <li><strong>Set Goals:</strong> Define simple milestones and deadlines for your projects.</li>
+                            <li><strong>Review Reports:</strong> Get a quick overview through straightforward reports.</li>
+                        </dl>
+                    </big>
+				</div>
+            </body>
+
+            </html>
+
+
+        </div>
+    </div>
+</body>
+
+</html>

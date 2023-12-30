@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Time Tracker</title>
+  <link rel="stylesheet" href="themes/default.css" id="theme-style">
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-storage.js"></script>
+  <script src="theme-switcher.js"></script>
+  <link rel="stylesheet" href="style-advanced.css">
+</head>
+<div id="html1-container">
+
+  <body>
+    <center>
+      <h1>Advanced Time Tracker</h1>
+
+      <div>
+        <label for="activity"><b id="switch"></b></label><br>
+        <input type="text" id="activity" placeholder="Enter Activity..."
+          title="Coding, Documentation, Internet, SQL or any other" list="activity-suggestions">
+
+        <datalist id="activity-suggestions"></datalist>
+
+        <br><br>
+        <button onclick="startActivity()">Start</button>
+        <button class="clear-log" onclick="clearLog()">Clear Logs</button>
+        <button class="export-log" onclick="exportLog()">Export Log</button>
+        <button class="clear-suggestions" onclick="clearSuggestions()">Clear Suggestions</button>
+      </div>
+    </center>
+    <ul id="timeEntriesList"></ul>
+
+    <div>
+      <h2>Activity Log</h2>
+      <ul id="activity-log" class="activity-list"></ul>
+    </div>
+
+    <script>
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCQm6V28oglDEwwXKxD4nj81fKEQ20jclk",
+        authDomain: "efficiency-meter.firebaseapp.com",
+        projectId: "efficiency-meter",
+        storageBucket: "efficiency-meter.appspot.com",
+        messagingSenderId: "127480064298",
+        appId: "1:127480064298:web:175795ab84af55cc3dd653"
+      };
+
+      const app = firebase.initializeApp(firebaseConfig);
+      const storage = app.storage();
+
+      let activityLog = [];
+      let suggestionHistory = [];
+
+      function handleExport() {
+        const storedActivity = localStorage.getItem('ongoingActivity');
+        const ongoingActivity = storedActivity ? JSON.parse(storedActivity) : null;
+
+        if (ongoingActivity) {
+          setTimeout(handleExport, 500);
+          return;
+        }
+
+        const stoppedActivities = activityLog.filter(entry => entry.endTime !== null);
+
+        if (stoppedActivities.length > 0) {
+          exportLog();
+        }
+      }
+
+      function handleFile(e) {
+        const file = e.target.files[0];
+
+        if (file) {
+          const storageRef = firebase.storage().ref();
+          const fileRef = storageRef.child(file.name);
+
+          fileRef.getDownloadURL().then((url) => {
+            fetch(url)
+              .then((response) => response.text())
+              .then((csvData) => processData(csvData))
+              .catch((error) => console.error('Error fetching CSV file:', error));
+          });
+        }
+      }
+
+      window.addEventListener('load', () => {
+        const personalisation = document.getElementById('switch');
+        let day;
+        switch (new Date().getDay()) {
+          case 0:
+            day = "Sunday";
+            break;
+          case 1:
+            day = "Monday";
+            break;
+          case 2:
+            day = "Tuesday";
+            break;
+          case 3:
+            day = "Wednesday";
+            break;
+          case 4:
+            day = "Thursday";
+            break;
+          case 5:
+            day = "Friday";
+            break;
+          case 6:
+            day = "Saturday";
+            break;
+        }
+        personalisation.innerHTML = "Hi there, Enter the task you want to work with... Happy " + day + "!";
+      })
+      window.addEventListener('load', function () {
+        const storedLog = localStorage.getItem('activityLog');
+        if (storedLog) {
+          activityLog = JSON.parse(storedLog);
+          updateActivityLog();
+        }
+
+        const storedActivity = localStorage.getItem('ongoingActivity');
+        if (storedActivity) {
+          const parsedActivity = JSON.parse(storedActivity);
+          if (!activityLog.some(entry => entry.activity === parsedActivity.activity)) {
+            activityLog.push(parsedActivity);
+            localStorage.setItem('ongoingActivity', JSON.stringify(parsedActivity));
+            updateActivityLog();
+          }
+        }
+      });
+
+      function createDatalist() {
+        const dataList = document.createElement('datalist');
+        dataList.id = 'activity-suggestions';
+        document.getElementById('activity').appendChild(dataList);
+      }
+
+      createDatalist();
+
+      document.getElementById('activity').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          startActivity();
+        }
+      });
+
+      function startActivity() {
+        const currentActivity = document.getElementById('activity').value.trim();
+
+        if (currentActivity === "") {
+          alert("No Activity is added");
+          return;
+        }
+
+        const startTime = new Date();
+        const entry = {
+          activity: currentActivity,
+          startTime,
+          endTime: null,
+          duration: null,
+        };
+
+        activityLog.push(entry);
+
+        localStorage.setItem('ongoingActivity', JSON.stringify(entry));
+        console.log("Storage started");
+
+        updateActivityLog();
+        updateSuggestions(currentActivity);
+      }
+
+      function stopActivity(index) {
+        const endTime = new Date();
+        const entry = activityLog[index];
+        entry.endTime = endTime;
+        entry.duration = (endTime - entry.startTime) / 1000;
+
+        localStorage.removeItem('ongoingActivity');
+        console.log("Storage stopped");
+
+        updateActivityLog();
+      }
+
+      function updateActivityLog() {
+        const activityLogElement = document.getElementById('activity-log');
+        activityLogElement.innerHTML = '';
+        activityLog.forEach((log, index) => {
+          const listItem = document.createElement('li');
+          const ongoingActivity = !log.endTime;
+
+          if (ongoingActivity) {
+            listItem.textContent = `${log.activity}: ${log.startTime.toLocaleString()} - Ongoing Activity`;
+          } else {
+            listItem.textContent = `${log.activity}: ${log.startTime.toLocaleString()} - ${log.endTime.toLocaleString()} (${formatTime(log.duration)})`;
+          }
+
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = 'Delete';
+          deleteButton.onclick = () => deleteActivity(index);
+          listItem.appendChild(deleteButton);
+
+          if (ongoingActivity) {
+            const stopButton = document.createElement('button');
+            stopButton.textContent = 'Stop';
+            stopButton.onclick = () => stopActivity(index);
+            listItem.appendChild(stopButton);
+          }
+
+          activityLogElement.appendChild(listItem);
+        });
+
+        localStorage.setItem('activityLog', JSON.stringify(activityLog));
+      }
+
+      function deleteActivity(index) {
+        activityLog.splice(index, 1);
+        updateActivityLog();
+      }
+
+      function clearLog() {
+        if (activityLog.length === 0) {
+          alert("All Activity Logs are cleared");
+          return;
+        }
+
+        activityLog = [];
+        updateActivityLog();
+      }
+
+      function exportLog() {
+        console.log('Export log function called.');
+        const stoppedActivities = activityLog.filter(entry => entry.endTime !== null);
+
+        if (stoppedActivities.length === 0) {
+          alert("Can't export log. At least one activity must be stopped.");
+          return;
+        }
+
+        const csvData = 'Activity,Start Date,Start Time,End Date,End Time,Duration\n';
+
+        const exportData = stoppedActivities.map(({ activity, startTime, endTime, duration }) => (
+          `${activity},${formatDate(startTime)},${formatTime(startTime)},${formatDate(endTime)},${formatTime(endTime)},${formatDuration(duration)}`
+        ));
+
+        const csvContent = csvData + exportData.join('\n');
+
+        const blob = new Blob([csvContent], {
+          type: 'text/csv'
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'activity-log.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        const timestamp = new Date().toISOString().replace(/[-:.]/g, "");
+        const csvFileName = `activity-log-${timestamp}.csv`;
+
+        const csvFileRef = storage.ref().child(csvFileName);
+
+        csvFileRef.put(csvBlob).then(function (snapshot) {
+          console.log('Uploaded the CSV file!');
+          alert('CSV file has been uploaded to Central Database.');
+
+          csvFileRef.getDownloadURL().then(function (url) {
+            updateCsvHistory(url);
+          });
+        }).catch(function (error) {
+          console.error('Error uploading the CSV file:', error);
+          alert('Error uploading the CSV file to Central Database.');
+        });
+      }
+
+
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${remainingSeconds}`;
+      }
+
+      function formatDuration(seconds) {
+        const hours = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const remainingSeconds = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${hours}:${minutes}:${remainingSeconds}`;
+      }
+
+      function updateSuggestions(text) {
+        const dataList = document.getElementById('activity-suggestions');
+        dataList.innerHTML = '';
+
+        if (text && !suggestionHistory.includes(text)) {
+          suggestionHistory.push(text);
+
+          suggestionHistory.forEach(prevSuggestion => {
+            addSuggestion(prevSuggestion);
+          });
+          localStorage.setItem('suggestionHistory', JSON.stringify(suggestionHistory));
+        }
+      }
+
+      function addSuggestion(value) {
+        const option = document.createElement('option');
+        option.value = value;
+        document.getElementById('activity-suggestions').appendChild(option);
+      }
+
+      function clearSuggestions() {
+        if (document.getElementById('activity-suggestions').childElementCount === 0) {
+          alert("All Suggestions cleared");
+          return;
+        }
+
+        suggestionHistory = [];
+        document.getElementById('activity-suggestions').innerHTML = '';
+      }
+    </script>
+  </body>
+</div>
+
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style-advanced.css">
+</head>
+<div id="html2-container">
+
+  <body>
+    <div class="dashboard">
+      <div class="section">
+        <center>
+          <h1>Upload the CSV File</h1>
+          <input type="file" id="fileInput" accept=".csv">
+        </center>
+      </div>
+
+      <div class="section">
+        <div class="charts-container" style="display: none;">
+          <div class="chart">
+            <h2>Bar Graph</h2>
+            <div class="chart-container">
+              <canvas id="barChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart">
+            <h2>Line Graph</h2>
+            <div class="chart-container">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Legend</h2>
+        <table border="1px">
+          <thead>
+            <tr>
+              <th>Color</th>
+              <th>Value Range</th>
+              <th>Depiction</th>
+            </tr>
+          </thead>
+          <tbody id="legendTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>Scale</h2>
+        <table border="1px">
+          <thead>
+            <tr>
+              <th>Graph</th>
+              <th>X-Axis Scale</th>
+              <th>Y-Axis Scale</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Bar Graph</td>
+              <td id="x-axis-scale-bar">Activities</td>
+              <td id="y-axis-scale-bar">Time spent(in minutes)</td>
+            </tr>
+            <tr>
+              <td>Line Graph</td>
+              <td id="x-axis-scale-line">Activities</td>
+              <td id="y-axis-scale-line">Time spent(in minutes)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>Resource Allocation Analysis</h2>
+        <p id="resourceAnalysis"></p>
+      </div>
+
+      <div class="section">
+        <h2>Top 5 Values</h2>
+        <table id="topValuesTable">
+          <thead>
+            <tr>
+              <th>Activities</th>
+              <th>Time spent(in minutes)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script src="theme-switcher.js"></script>
+
+
+    <script>
+      let barChart, lineChart;
+      let minValue, maxValue;
+
+      document.getElementById('fileInput').addEventListener('change', handleFile);
+
+      function convertTimeToNumeric(timeString) {
+        const [hours, minutes, seconds] = timeString.split(':').map(Number);
+        return hours * 60 + minutes + seconds / 60;
+      }
+
+      function generateColorForValue(value) {
+        const rangeSize = (maxValue - minValue) / 5;
+
+        const colorRanges = [
+          { range: [minValue, minValue + rangeSize], color: 'blue', depiction: 'Least' },
+          { range: [minValue + rangeSize, minValue + 2 * rangeSize], color: 'green', depiction: 'Lower' },
+          { range: [minValue + 2 * rangeSize, minValue + 3 * rangeSize], color: 'yellow', depiction: 'Low' },
+          { range: [minValue + 3 * rangeSize, minValue + 4 * rangeSize], color: 'orange', depiction: 'Higher' },
+          { range: [minValue + 4 * rangeSize, maxValue], color: 'red', depiction: 'Highest' }
+        ];
+
+        const matchingRange = colorRanges.find(range => value >= range.range[0] && value <= range.range[1]);
+
+        return matchingRange ? matchingRange.color : 'gray';
+      }
+
+      function handleFile(e) {
+        const file = e.target.files[0];
+
+        if (file) {
+          const reader = new FileReader();
+
+          reader.onload = function (event) {
+            const csvData = event.target.result;
+            processData(csvData);
+          };
+
+          reader.readAsText(file);
+        }
+      }
+
+      function processData(csvData) {
+        const rows = csvData.split('\n').slice(1);
+        const data = rows.map((row, index) => {
+          const columns = row.split(',');
+          return {
+            label: columns[0].trim(),
+            value: convertTimeToNumeric(columns[5].trim()),
+            order: index
+          };
+        });
+
+        data.sort((a, b) => a.order - b.order);
+
+        const labels = data.map(item => item.label);
+        const values = data.map(item => item.value);
+
+        minValue = Math.min(...values);
+        maxValue = Math.max(...values);
+
+        displayBarGraph(labels, values);
+        displayLineGraph(labels, values);
+        displayTopValues(labels, values);
+        displayResourceAnalysis(labels, values);
+
+        document.getElementById('x-axis-scale-bar').textContent = `Labels (${labels.length})`;
+        document.getElementById('y-axis-scale-bar').textContent = `Values (${minValue.toFixed(2)} - ${maxValue.toFixed(2)})`;
+
+        document.getElementById('x-axis-scale-line').textContent = `Labels (${labels.length})`;
+        document.getElementById('y-axis-scale-line').textContent = `Values (${minValue.toFixed(2)} - ${maxValue.toFixed(2)})`;
+
+        displayLegendTable();
+
+        document.querySelector('.charts-container').style.display = 'block';
+        document.querySelector('.legend-table').style.display = 'block';
+        document.querySelector('.scale-table').style.display = 'block';
+        document.querySelector('.analysis-container').style.display = 'block';
+        document.querySelector('.top-values-table').style.display = 'block';
+      }
+
+      function displayBarGraph(labels, values) {
+        if (barChart) {
+          barChart.destroy();
+        }
+
+        const ctx = document.getElementById('barChart').getContext('2d');
+
+        const barColors = values.map(value => generateColorForValue(value));
+
+        const data = {
+          labels: labels,
+          datasets: [{
+            label: 'Data from CSV',
+            data: values,
+            backgroundColor: barColors,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          }]
+        };
+
+        const options = {
+          scales: {
+            x: {
+              type: 'category',
+              labels: labels
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        };
+
+        barChart = new Chart(ctx, {
+          type: 'bar',
+          data: data,
+          options: options
+        });
+      }
+
+      function displayLineGraph(labels, values) {
+        if (lineChart) {
+          lineChart.destroy();
+        }
+
+        const ctx = document.getElementById('lineChart').getContext('2d');
+
+        const lineColors = values.map(value => generateColorForValue(value));
+
+        const data = {
+          labels: labels,
+          datasets: [{
+            label: 'Data from CSV',
+            data: values,
+            fill: false,
+            borderColor: lineColors,
+            borderWidth: 2
+          }]
+        };
+
+        const options = {
+          scales: {
+            x: {
+              type: 'category',
+              labels: labels
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        };
+
+        lineChart = new Chart(ctx, {
+          type: 'line',
+          data: data,
+          options: options
+        });
+      }
+
+      function displayTopValues(labels, values) {
+        const tableBody = document.querySelector('#topValuesTable tbody');
+        tableBody.innerHTML = '';
+
+        const data = labels.map((label, index) => ({ label, value: values[index] }));
+
+        data.sort((a, b) => b.value - a.value);
+
+        const topValues = data.slice(0, 5);
+
+        topValues.forEach(({ label, value }) => {
+          const row = tableBody.insertRow();
+          const labelCell = row.insertCell(0);
+          const valueCell = row.insertCell(1);
+
+          labelCell.textContent = label;
+          valueCell.textContent = value.toFixed(2);
+        });
+      }
+
+      function displayResourceAnalysis(labels, values) {
+        const mostUtilizedResource = labels[0];
+        const leastUtilizedResource = labels[labels.length - 1];
+
+        const mostUtilizedTime = values[0];
+        const leastUtilizedTime = values[values.length - 1];
+
+        const efficiencyImprovementPercentage = ((mostUtilizedTime - leastUtilizedTime) / mostUtilizedTime) * 100;
+
+        const analysisTemplates = [
+          `Based on the analysis, it appears that your organization is allocating a significant amount of time to ${mostUtilizedResource}, which consumes ${mostUtilizedTime.toFixed(2)} hours. `,
+          `The data suggests that ${mostUtilizedResource} is a major focus, accounting for ${mostUtilizedTime.toFixed(2)} hours. Consider optimizing resource allocation for better efficiency. `,
+          `Resource utilization analysis indicates that ${mostUtilizedResource} demands ${mostUtilizedTime.toFixed(2)} hours. There's an opportunity to streamline processes for improved productivity. `
+        ];
+
+        const randomIndex = Math.floor(Math.random() * analysisTemplates.length);
+        let analysisText = analysisTemplates[randomIndex];
+
+        if (efficiencyImprovementPercentage > 0) {
+          analysisText += ` Allocating time more efficiently can lead to a ${efficiencyImprovementPercentage.toFixed(2)}% improvement in resource utilization. `;
+        } else {
+          analysisText += ` Consider optimizing the time spent on ${leastUtilizedResource} to enhance productivity. `;
+        }
+
+        document.getElementById('resourceAnalysis').textContent = analysisText;
+      }
+
+      function displayLegendTable() {
+        const legendTableBody = document.getElementById('legendTableBody');
+        legendTableBody.innerHTML = '';
+
+        const rangeSize = (maxValue - minValue) / 5;
+
+        const colorRanges = [
+          { range: [minValue, minValue + rangeSize], color: 'blue', depiction: 'Least' },
+          { range: [minValue + rangeSize, minValue + 2 * rangeSize], color: 'green', depiction: 'Lower' },
+          { range: [minValue + 2 * rangeSize, minValue + 3 * rangeSize], color: 'yellow', depiction: 'Low' },
+          { range: [minValue + 3 * rangeSize, minValue + 4 * rangeSize], color: 'orange', depiction: 'Higher' },
+          { range: [minValue + 4 * rangeSize, maxValue], color: 'red', depiction: 'Highest' }
+        ];
+
+        colorRanges.forEach(({ color, range, depiction }) => {
+          const row = legendTableBody.insertRow();
+          const colorCell = row.insertCell(0);
+          const rangeCell = row.insertCell(1);
+          const depictionCell = row.insertCell(2);
+
+          colorCell.style.backgroundColor = color;
+          rangeCell.textContent = `${range[0].toFixed(2)} - ${range[1].toFixed(2)}`;
+          depictionCell.textContent = depiction;
+        });
+      }
+    </script>
+  </body>
+</div>
+
+</html>

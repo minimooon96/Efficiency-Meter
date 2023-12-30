@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Sense</title>
+  <link rel="icon" type="image" href="timespent.jpg">
+  <link rel="stylesheet" href="style-timesense.css">
+  <link rel="stylesheet" href="themes/default.css" id="theme-style">
+  <script src="theme-switcher.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>TIME SENSE</h1>
+    <style>
+      #demo {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: rgb(0, 162, 255);
+        text-align: center;
+        border-radius: 5px 5px 5px 5px;
+        box-shadow: 0px 0px 20px 1px;
+        transition: 0.3s ease-in-out;
+        display: -webkit-inline-box;
+        margin-bottom: 30px;
+      }
+
+      #demo:hover {
+        display: inline-block;
+        color: rgb(0, 162, 255);
+        background-color: #000000;
+        padding: 10px 10px 10px 10px;
+        border-radius: 50px 50px 50px 50px;
+        box-shadow: 0px 0px 10px 1px;
+        transition: 0.3s;
+      }
+    </style>
+    <div>
+      <script>
+        window.addEventListener('load', () => {
+          const personalisation = document.getElementById('switch');
+          let day;
+          switch (new Date().getDay()) {
+            case 0:
+              day = "Sunday";
+              break;
+            case 1:
+              day = "Monday";
+              break;
+            case 2:
+              day = "Tuesday";
+              break;
+            case 3:
+              day = "Wednesday";
+              break;
+            case 4:
+              day = "Thursday";
+              break;
+            case 5:
+              day = "Friday";
+              break;
+            case 6:
+              day = "Saturday";
+              break;
+          }
+          personalisation.innerHTML = "Begin the countdown timer, keep the volume intact, and focus on your task with a smile. Happy" + day + "..!!!";
+        })
+        setInterval(() => {
+          document.getElementById("demo").innerHTML = new Date().toLocaleTimeString();
+        }, 1000);
+      </script>
+      <div id="demo"></div><br>
+      <div><b>
+          <big id="switch"></big>
+        </b>
+      </div>
+      <br><br>
+    </div>
+    <div class="hms">
+      <label for="hours">Hours:</label>
+      <input type="number" id="hours" min="0" placeholder="0" required>
+
+      <label for="minutes">Minutes:</label>
+      <input type="number" id="minutes" min="0" max="59" placeholder="0" required>
+
+      <label for="seconds">Seconds:</label>
+      <input type="number" id="seconds" min="0" max="59" placeholder="0" required>
+    </div>
+    <div id="timer"></div>
+
+    <button id="startButton" onclick="startCountdown()">Start</button>
+    <button id="pauseButton" style="display: none;">Pause/ Resume</button>
+    <button id="stopButton" style="display: none;" onclick="stopCountdown()">Reset</button>
+
+  </div>
+  <script>
+    let countdown;
+    let pauseButton = document.getElementById('pauseButton');
+    let startButton = document.getElementById('startButton');
+    let stopButton = document.getElementById('stopButton');
+
+    function startCountdown() {
+      startButton.style.display = 'none';
+      pauseButton.style.display = 'inline-block';
+      stopButton.style.display = 'inline-block';
+
+      const hoursInput = document.getElementById('hours');
+      const minutesInput = document.getElementById('minutes');
+      const secondsInput = document.getElementById('seconds');
+      const timerDisplay = document.getElementById('timer');
+
+      const hours = parseInt(hoursInput.value) || 0;
+      const minutes = parseInt(minutesInput.value) || 0;
+      const seconds = parseInt(secondsInput.value) || 0;
+
+      const totalTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
+
+      if (totalTimeInSeconds <= 0) {
+        var eAudio = new Audio('sounds/Error.mp3');
+        eAudio.play();
+        clearInterval(countdown);
+        setTimeout(function () {
+          alert("Please enter a valid time..!!!");
+          // Enable the start button
+          startButton.style.display = 'inline-block';
+          // Hide the pause/resume button
+          pauseButton.style.display = 'none';
+        }, 100);
+        return;
+      }
+
+      let remainingTime = totalTimeInSeconds;
+
+      function updateTimer() {
+        const hoursRemaining = Math.floor(remainingTime / 3600);
+        const minutesRemaining = Math.floor((remainingTime % 3600) / 60);
+        const secondsRemaining = remainingTime % 60;
+
+        timerDisplay.innerHTML = `${hoursRemaining}h ${minutesRemaining}m ${secondsRemaining}s`;
+
+        if (remainingTime <= 0) {
+          var nAudio = new Audio('sounds/notify.mp3');
+          nAudio.play();
+          clearInterval(countdown);
+          setTimeout(function () {
+            alert("Time's up!");
+            resetTimer();
+          }, 50);
+          // Enable the start button
+          startButton.style.display = 'inline-block';
+          // Hide the pause/resume button
+          pauseButton.style.display = 'none';
+        }
+        remainingTime--;
+      }
+
+      pauseButton.addEventListener('click', function () {
+        if (countdown) {
+          clearInterval(countdown);
+          countdown = null;
+          pauseButton.innerHTML = 'Resume';
+        } else {
+          countdown = setInterval(updateTimer, 1000);
+          pauseButton.innerHTML = 'Pause';
+        }
+      });
+
+      updateTimer();
+
+      countdown = setInterval(updateTimer, 1000);
+    }
+    function stopCountdown() {
+      clearInterval(countdown);
+      resetTimer();
+    }
+
+    function resetTimer() {
+      const hoursInput = document.getElementById('hours');
+      const minutesInput = document.getElementById('minutes');
+      const secondsInput = document.getElementById('seconds');
+      const timerDisplay = document.getElementById('timer');
+
+      hoursInput.value = '0';
+      minutesInput.value = '0';
+      secondsInput.value = '0';
+      timerDisplay.innerHTML = '0h 0m 0s';
+
+      startButton.style.display = 'inline-block';
+      pauseButton.style.display = 'none';
+      stopButton.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #252525;
+}
+
+h1, h2 {
+  text-align: center;
+  color: #db3934;
+}
+
+#html1-container {
+  float: left;
+  width: 50%;
+}
+
+#html1-container div {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: linear-gradient(to right, #ffffff, #f0f0f0);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  transition: box-shadow 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+#html1-container div:hover {
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+}
+
+#html1-container label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+#html1-container input[type="text"] {
+  width: auto;
+  font-size: large;
+  padding: 10px;
+  border: 1px solid #db3934;
+  border-radius: 10px;
+  background-color: #fff;
+  transition: border-color 0.3s ease-in-out;
+}
+
+#html1-container button {
+  padding: 15px;
+  font-size: medium;
+  background: linear-gradient(to right, #db3934, #2ecc71);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 10px;
+  transition: background 0.3s ease-in-out;
+}
+
+#html1-container button:hover {
+  background: linear-gradient(to right, #2ecc71, #db3934);
+}
+
+#history a {
+  display: block;
+  margin-bottom: 5px;
+}
+
+#html2-container {
+  float: right;
+  width: 50%;
+}
+
+#html2-container .dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  padding: 20px;
+}
+
+#html2-container .section {
+  background-color: lightgoldenrodyellow;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+}
+
+#html2-container h1 {
+  margin-bottom: 20px;
+}
+
+#html2-container #fileInput {
+  margin-bottom: 20px;
+}
+
+#html2-container .charts-container, #html2-container .table-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+#html2-container .chart, #html2-container table {
+  flex: 1;
+}
+
+#html2-container .chart-container {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+#html2-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#html2-container th, #html2-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}

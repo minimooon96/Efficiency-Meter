@@ -1,0 +1,78 @@
+body {
+    background-color: #000000;
+    color: #8e7f00;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-image: url('https://c1.wallpaperflare.com/preview/97/456/996/lamp-night-light-porch-light-source-of-illumination.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+header {
+    background-color: #000000;
+	color: #8e7f00;
+    padding: 10px;
+}
+
+.content {
+    padding: 20px;
+    line-height: 1.6;
+}
+
+a {
+    color: #007bff;
+}
+
+a:hover {
+    color: #00ff2a;
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, li, p {
+    color: #988901;
+}
+
+p {
+    margin-bottom: 15px;
+}
+
+option {
+    font-weight: bolder;
+    background-color: #000000;
+    color: lawngreen;
+}
+
+.sidebar-menu a:hover {
+	font-size:125%;
+    color: lawngreen;
+    font-weight: bolder;
+}
+
+h1::after, h2::after, #name::before, #name::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    height: 2px;
+    width: 0;
+    background-color: lime;
+    transition: width 0.3s ease;
+    cursor: pointer;
+}
+
+h1:hover, h2:hover, #name, #name:hover {
+    color: limegreen;
+}
+#name{
+    color: #0000;
+    background: 
+    linear-gradient(90deg,lime 50%,white 0) var(--_p,100%)/200% no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  #tag {
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+    color: #8e7f00;
+    text-shadow: 0 0 1px rgb(255, 255, 255), 0 0 1.5px white, 0 0 1px white;
+}   
